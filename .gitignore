@@ -1,0 +1,55 @@
+# Reference repos
+reference/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing & Coverage
+coverage/
+*.lcov
+.nyc_output
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Bun
+*.lockb
+
+# Go
+bin/
+apps/backend/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+apps/backend/tmp/
+
+# Environment files
+.env
+.env*.local
+!.env.example
+!.env.sample
+
+# IDEs & OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
