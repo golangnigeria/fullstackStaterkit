@@ -1,6 +1,5 @@
 import { env } from "@/config/env";
 import { apiContract } from "@tutorlinkng/openapi/contracts";
-import { useAuth } from "@clerk/clerk-react";
 import { initClient } from "@ts-rest/core";
 import axios, {
   type Method,
@@ -16,16 +15,12 @@ type Headers = Awaited<
 export type TApiClient = ReturnType<typeof useApiClient>;
 
 export const useApiClient = ({ isBlob = false }: { isBlob?: boolean } = {}) => {
-  const { getToken } = useAuth();
-
   return initClient(apiContract, {
     baseUrl: "",
     baseHeaders: {
       "Content-Type": "application/json",
     },
     api: async ({ path, method, headers, body }) => {
-      const token = await getToken();
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const makeRequest = async (retryCount = 0): Promise<any> => {
         try {
@@ -34,9 +29,9 @@ export const useApiClient = ({ isBlob = false }: { isBlob?: boolean } = {}) => {
             url: `${env.VITE_API_URL}/api${path}`,
             headers: {
               ...headers,
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             data: body,
+            withCredentials: true,
             ...(isBlob ? { responseType: "blob" } : {}),
           });
           return {

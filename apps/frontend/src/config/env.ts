@@ -1,14 +1,28 @@
 import { z } from "zod";
 
+const apiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.VITE_API_URL ||
+  "http://localhost:8080";
+
+const nodeEnv =
+  process.env.NODE_ENV ||
+  process.env.VITE_ENV ||
+  "development";
+
 const envVarsSchema = z.object({
-  VITE_CLERK_PUBLISHABLE_KEY: z
-    .string()
-    .min(1, "VITE_CLERK_PUBLISHABLE_KEY is required"),
-  VITE_API_URL: z.string().url().default("http://localhost:3000"),
-  VITE_ENV: z.enum(["production", "development", "local"]).default("local"),
+  NEXT_PUBLIC_API_URL: z.string().url().default("http://localhost:8080"),
+  VITE_API_URL: z.string().url().default("http://localhost:8080"),
+  API_URL: z.string().url().default("http://localhost:8080"),
+  NODE_ENV: z.string().default("development"),
 });
 
-const parseResult = envVarsSchema.safeParse(process.env);
+const parseResult = envVarsSchema.safeParse({
+  NEXT_PUBLIC_API_URL: apiUrl,
+  VITE_API_URL: apiUrl,
+  API_URL: apiUrl,
+  NODE_ENV: nodeEnv,
+});
 
 if (!parseResult.success) {
   console.error(

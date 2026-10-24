@@ -1,3 +1,5 @@
+"use client";
+
 import { TodoCommentsDialog } from "./todo-comments-dialog";
 import { TodoEditForm } from "./todo-edit-form";
 import {

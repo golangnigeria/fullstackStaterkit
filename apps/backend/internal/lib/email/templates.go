@@ -7,4 +7,7 @@ const (
 	TemplateDueDateReminder     Template = "due-date-reminder"
 	TemplateOverdueNotification Template = "overdue-notification"
 	TemplateWeeklyReport        Template = "weekly-report"
+	TemplateResetPassword       Template = "reset-password"
+	TemplateVerifyEmail         Template = "verify-email"
 )
+

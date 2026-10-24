@@ -1,3 +1,5 @@
+"use client";
+
 import {
   useUpdateCategory,
   type TGetCategoriesResponse,

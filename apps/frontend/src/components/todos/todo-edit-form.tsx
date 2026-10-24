@@ -1,3 +1,5 @@
+"use client";
+
 import { useGetAllCategories } from "@/api/hooks/use-category-query";
 import {
   useUpdateTodo,

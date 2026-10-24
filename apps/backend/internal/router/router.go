@@ -54,6 +54,13 @@ func NewRouter(s *server.Server, h *handler.Handlers, services *service.Services
 	// register system routes
 	registerSystemRoutes(router, h)
 
+	// register limen auth routes
+	if s.Limen != nil {
+		limenHandler := echo.WrapHandler(s.Limen.Handler())
+		router.Any("/auth", limenHandler)
+		router.Any("/auth/*", limenHandler)
+	}
+
 	// register versioned routes
 	v1Router := router.Group("/api/v1")
 

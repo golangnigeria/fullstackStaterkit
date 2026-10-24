@@ -14,7 +14,7 @@ export {
   type TUpdateTodoPayload,
   type TUpdateTodoResponse,
   type TTodoStatsResponse,
-} from "./use-todo-query.js";
+} from "./use-todo-query";
 
 // Todo Attachment hooks
 export {
@@ -28,7 +28,7 @@ export {
   type TDeleteTodoAttachmentResponse,
   type TGetTodoAttachmentPresignedUrlParams,
   type TGetTodoAttachmentPresignedUrlResponse,
-} from "./use-todo-attachment-query.js";
+} from "./use-todo-attachment-query";
 
 // Category hooks
 export {
@@ -44,7 +44,7 @@ export {
   type TCreateCategoryResponse,
   type TUpdateCategoryPayload,
   type TUpdateCategoryResponse,
-} from "./use-category-query.js";
+} from "./use-category-query";
 
 // Comment hooks
 export {
@@ -57,7 +57,7 @@ export {
   type TAddCommentResponse,
   type TUpdateCommentPayload,
   type TUpdateCommentResponse,
-} from "./use-comment-query.js";
+} from "./use-comment-query";
 
 // Utility hooks
-export { useDebounce } from "./use-debounce.js";
+export { useDebounce } from "./use-debounce";

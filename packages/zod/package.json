@@ -1,10 +1,11 @@
 {
   "name": "@tutorlinkng/zod",
   "version": "1.0.0",
-  "description": "Package which exports all Boilerplate zod schemas and types",
+  "description": "Package which exports all TutorlinkNG zod schemas and types",
   "type": "module",
   "scripts": {
     "build": "tsc && tsc-alias",
+    "typecheck": "tsc --noEmit",
     "dev": "tsc && (concurrently \"tsc -w\" \"tsc-alias -w\")",
     "clean": "rimraf dist tsconfig.tsbuildinfo .turbo node_modules"
   },

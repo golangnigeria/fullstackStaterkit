@@ -33,6 +33,7 @@ type ServerConfig struct {
 	WriteTimeout       int      `koanf:"write_timeout" validate:"required"`
 	IdleTimeout        int      `koanf:"idle_timeout" validate:"required"`
 	CORSAllowedOrigins []string `koanf:"cors_allowed_origins" validate:"required"`
+	FrontendURL        string   `koanf:"frontend_url"`
 }
 
 type DatabaseConfig struct {
@@ -47,6 +48,7 @@ type DatabaseConfig struct {
 	ConnMaxLifetime int    `koanf:"conn_max_lifetime" validate:"required"`
 	ConnMaxIdleTime int    `koanf:"conn_max_idle_time" validate:"required"`
 }
+
 type RedisConfig struct {
 	Address  string `koanf:"address" validate:"required"`
 	Password string `koanf:"password"`
@@ -54,6 +56,10 @@ type RedisConfig struct {
 
 type IntegrationConfig struct {
 	ResendAPIKey string `koanf:"resend_api_key" validate:"required"`
+	FromEmail    string `koanf:"from_email"`
+	FromName     string `koanf:"from_name"`
+	AppName      string `koanf:"app_name"`
+	TemplatesDir string `koanf:"templates_dir"`
 }
 
 type AuthConfig struct {
@@ -193,6 +199,26 @@ func LoadConfig() (*Config, error) {
 	err = k.Unmarshal("", mainConfig)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("could not unmarshal main config")
+	}
+
+	// Support direct environment variables without TUTORLINKNG_ prefix
+	if val := os.Getenv("FROM_EMAIL"); val != "" && mainConfig.Integration.FromEmail == "" {
+		mainConfig.Integration.FromEmail = val
+	}
+	if val := os.Getenv("RESEND_FROM_EMAIL"); val != "" && mainConfig.Integration.FromEmail == "" {
+		mainConfig.Integration.FromEmail = val
+	}
+	if val := os.Getenv("FROM_NAME"); val != "" && mainConfig.Integration.FromName == "" {
+		mainConfig.Integration.FromName = val
+	}
+	if val := os.Getenv("APP_NAME"); val != "" && mainConfig.Integration.AppName == "" {
+		mainConfig.Integration.AppName = val
+	}
+	if val := os.Getenv("FRONTEND_URL"); val != "" && mainConfig.Server.FrontendURL == "" {
+		mainConfig.Server.FrontendURL = val
+	}
+	if val := os.Getenv("EMAIL_TEMPLATES_DIR"); val != "" && mainConfig.Integration.TemplatesDir == "" {
+		mainConfig.Integration.TemplatesDir = val
 	}
 
 	validate := validator.New()

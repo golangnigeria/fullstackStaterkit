@@ -1,8 +1,10 @@
+"use client";
+
 import { type ReactNode, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useUser } from "@clerk/clerk-react";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -78,7 +80,8 @@ export function TodoCommentsDialog({ todoId, children }: TodoCommentsDialogProps
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
   
-  const { user } = useUser();
+  const { data } = useSession();
+  const user = data?.user;
   const { data: comments, isLoading } = useGetCommentsByTodoId({ todoId });
   const addComment = useAddComment();
   const updateComment = useUpdateComment();
@@ -201,7 +204,7 @@ export function TodoCommentsDialog({ todoId, children }: TodoCommentsDialogProps
                               </span>
                             </div>
                             
-                            {comment.userId === user?.id && (
+                            {Boolean(user?.id) && String(comment.userId) === String(user?.id) && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon" className="h-6 w-6">

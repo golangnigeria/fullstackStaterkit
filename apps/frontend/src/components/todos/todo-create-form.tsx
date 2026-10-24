@@ -1,3 +1,5 @@
+"use client";
+
 import { useGetAllCategories } from "@/api/hooks/use-category-query";
 import { useCreateTodo } from "@/api/hooks/use-todo-query";
 import { useUploadTodoAttachment } from "@/api/hooks/use-todo-attachment-query";

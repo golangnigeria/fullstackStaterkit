@@ -2,8 +2,7 @@ version: '3'
 
 vars:
   GO_BIN_DIR: apps/backend/bin
-  DOCKER_COMPOSE_FILE: infrastructure/docker/docker-compose.yml
-  POSTGRES_DSN: "postgres://tutorlink:tutorlink_secret@localhost:5432/tutorlink_dev?sslmode=disable"
+  POSTGRES_DSN: '{{.TUTORLINKNG_DB_DSN | default "postgres://postgres:postgres@localhost:5432/tutorlinkng?sslmode=disable"}}'
 
 tasks:
   default:
@@ -11,98 +10,108 @@ tasks:
     cmds:
       - task --list
 
-  # --- Infrastructure ---
+  # --- Infrastructure (Docker) ---
   up:
-    desc: Start local dependencies (PostgreSQL, Redis)
+    desc: Start local dependencies (PostgreSQL, Redis, S3 Object Storage)
     cmds:
-      - docker compose -f {{.DOCKER_COMPOSE_FILE}} up -d
-      - echo "PostgreSQL (localhost:5432) and Redis (localhost:6379) are running."
+      - docker compose up -d
+      - 'echo "PostgreSQL (5432), Redis (6379), S3 Object Storage (9090) are starting."'
 
   down:
     desc: Stop local dependencies
     cmds:
-      - docker compose -f {{.DOCKER_COMPOSE_FILE}} down
+      - docker compose down
 
   logs:
     desc: View logs from docker compose services
     cmds:
-      - docker compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
+      - docker compose logs -f
 
-  # --- Database ---
+  # --- Development ---
+  dev:
+    desc: Start all services (infrastructure, migrations, backend API, and frontend)
+    cmds:
+      - task: up
+      - task: db:migrate
+      - task: dev:all
+
+  dev:all:
+    internal: true
+    deps:
+      - dev:api
+      - dev:web
+
+  dev:api:
+    desc: Start Go Echo API server
+    dir: apps/backend
+    cmds:
+      - go run ./cmd/tutorlinkng
+
+  dev:worker:
+    desc: Start Go cron runner
+    dir: apps/backend
+    cmds:
+      - go run ./cmd/cron
+
+  dev:web:
+    desc: Start frontend dev server (Next.js)
+    cmds:
+      - bun run --filter frontend dev
+
+  terminal:
+    desc: Start interactive developer terminal & observability TUI
+    cmds:
+      - bun run terminal
+
+  terminal:go:
+    desc: Start Go-native developer terminal & observability TUI
+    dir: apps/backend
+    cmds:
+      - go run ./cmd/tui
+
+  # --- Database (Tern) ---
   db:status:
     desc: Check database migration status
-    dir: db/migrations
+    dir: apps/backend
     cmds:
-      - goose postgres "{{.POSTGRES_DSN}}" status
+      - tern status -m ./internal/database/migrations --conn-string "{{.POSTGRES_DSN}}"
 
   db:migrate:
-    desc: Run pending Goose database migrations
-    dir: db/migrations
+    desc: Apply pending Tern database migrations
+    dir: apps/backend
     cmds:
-      - goose postgres "{{.POSTGRES_DSN}}" up
+      - tern migrate -m ./internal/database/migrations --conn-string "{{.POSTGRES_DSN}}"
 
-  db:rollback:
-    desc: Rollback the most recent Goose migration
-    dir: db/migrations
+  db:new:
+    desc: Create a new database migration (e.g. task db:new name=migration_name)
+    dir: apps/backend
+    vars:
+      NAME: '{{.name | default ""}}'
     cmds:
-      - goose postgres "{{.POSTGRES_DSN}}" down
+      - tern new -m ./internal/database/migrations {{.NAME}}
 
-  sqlc:generate:
-    desc: Generate Go database queries from sqlc
-    cmds:
-      - sqlc generate
-
-  # --- Contracts & Clients ---
-  openapi:validate:
-    desc: Validate the OpenAPI contract
-    cmds:
-      - bun run --filter @tutorlink/api-client validate
-
+  # --- Contracts & Code Generation ---
   openapi:generate:
-    desc: Generate TypeScript API client from OpenAPI spec
+    desc: Generate OpenAPI spec from TypeScript contracts
     cmds:
-      - bun run --filter @tutorlink/api-client generate
+      - bun run --filter @tutorlinkng/openapi gen
 
-  # --- Email Templates (TutorlinkNG verified workflow) ---
+  # --- Email Templates ---
   email:dev:
     desc: Start React Email live preview server
     cmds:
-      - bun run --filter @tutorlink/email dev
+      - bun run --filter @tutorlinkng/emails dev
 
   email:export:
     desc: Export React Email templates to Go templates directory
     cmds:
-      - bun run --filter @tutorlink/email export
-
-  email:test:
-    desc: Test email template compilation and placeholders
-    cmds:
-      - bun run --filter @tutorlink/email test
-
-  # --- Development ---
-  dev:web:
-    desc: Start Next.js frontend dev server
-    cmds:
-      - bun run --filter @tutorlink/web dev
-
-  dev:api:
-    desc: Start Go Fiber API server
-    dir: apps/backend
-    cmds:
-      - go run ./cmd/api
-
-  dev:worker:
-    desc: Start Go transactional outbox worker
-    dir: apps/backend
-    cmds:
-      - go run ./cmd/worker
+      - bun run --filter @tutorlinkng/emails export
 
   # --- Quality & Testing ---
   test:
-    desc: Run all tests (Go unit/integration and Frontend)
+    desc: Run all tests (Go and Frontend)
     cmds:
       - task: test:go
-      - task: test:email
       - task: test:web
 
   test:go:
@@ -111,15 +120,10 @@ tasks:
     cmds:
       - go test -race -v ./...
 
-  test:email:
-    desc: Run email template tests
-    cmds:
-      - bun run --filter @tutorlink/email test
-
   test:web:
     desc: Run frontend unit tests
     cmds:
-      - bun run --filter @tutorlink/web test
+      - bun run --filter frontend test
 
   lint:
     desc: Run linters across Go and TypeScript
@@ -136,7 +140,7 @@ tasks:
   check:
     desc: Run all validation checks (format, lint, tests, builds)
     cmds:
-      - bun run check-types
+      - bun run typecheck
       - task: lint
       - task: test
       - task: build
@@ -148,9 +152,9 @@ tasks:
       - task: build:go
 
   build:go:
-    desc: Build Go binaries for api, worker, and migrate
+    desc: Build Go binaries for tutorlinkng, cron, and tui
     dir: apps/backend
     cmds:
-      - go build -o bin/api.exe ./cmd/api
-      - go build -o bin/worker.exe ./cmd/worker
-      - go build -o bin/migrate.exe ./cmd/migrate
+      - go build -o bin/tutorlinkng.exe ./cmd/tutorlinkng
+      - go build -o bin/cron.exe ./cmd/cron
+      - go build -o bin/tui.exe ./cmd/tui

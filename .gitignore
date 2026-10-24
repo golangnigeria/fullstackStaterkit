@@ -19,6 +19,7 @@ out/
 
 # Turbo
 .turbo/
+*.tsbuildinfo
 
 # Bun
 *.lockb

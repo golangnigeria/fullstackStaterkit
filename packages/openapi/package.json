@@ -6,13 +6,18 @@
   "scripts": {
     "gen": "tsx src/gen.ts",
     "build": "tsc && tsc-alias",
+    "typecheck": "tsc --noEmit",
     "dev": "wait-on ../zod/dist/index.js && tsc && (concurrently \"tsc -w\" \"tsc-alias -w\")",
     "clean": "rimraf dist tsconfig.tsbuildinfo .turbo node_modules"
   },
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./contracts": {
       "types": "./dist/contracts/index.d.ts",
-      "default": "./dist/contract/index.js"
+      "default": "./dist/contracts/index.js"
     }
   },
   "keywords": [],

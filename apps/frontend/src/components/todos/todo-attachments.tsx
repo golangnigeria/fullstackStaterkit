@@ -1,3 +1,5 @@
+"use client";
+
 import type { TGetTodoByIdResponse } from "@/api/hooks";
 import {
   useDeleteTodoAttachment,

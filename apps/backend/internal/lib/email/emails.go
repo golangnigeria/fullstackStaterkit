@@ -2,6 +2,7 @@ package email
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,14 +10,91 @@ import (
 )
 
 func (c *Client) SendWelcomeEmail(to, firstName string) error {
+	appName := c.GetAppName()
+	if appName == "" {
+		appName = "TutorlinkNG"
+	}
+
 	data := map[string]any{
 		"UserFirstName": firstName,
+		"AppName":       appName,
+	}
+
+	subject := os.Getenv("WELCOME_EMAIL_SUBJECT")
+	if subject == "" {
+		subject = fmt.Sprintf("Welcome to %s!", appName)
 	}
 
 	return c.SendEmail(
 		to,
-		"Welcome to Boilerplate!",
+		subject,
 		TemplateWelcome,
+		data,
+	)
+}
+
+func (c *Client) SendPasswordResetEmail(to, resetURL, resetCode string) error {
+	appName := c.GetAppName()
+	if appName == "" {
+		appName = "TutorlinkNG"
+	}
+
+	data := map[string]any{
+		"UserEmail": to,
+		"ResetURL":  resetURL,
+		"ResetCode": resetCode,
+		"Code":      resetCode,
+		"AppName":   appName,
+	}
+
+	c.logger.Info().
+		Str("to", to).
+		Str("reset_url", resetURL).
+		Str("reset_code", resetCode).
+		Msg("🔑 Password Reset code generated")
+
+	subject := os.Getenv("RESET_PASSWORD_EMAIL_SUBJECT")
+	if subject == "" {
+		subject = fmt.Sprintf("Your %s Password Reset Code", appName)
+	}
+
+	return c.SendEmail(
+		to,
+		subject,
+		TemplateResetPassword,
+		data,
+	)
+}
+
+func (c *Client) SendEmailVerificationEmail(to, verifyURL, verifyCode string) error {
+	appName := c.GetAppName()
+	if appName == "" {
+		appName = "TutorlinkNG"
+	}
+
+	data := map[string]any{
+		"UserEmail":  to,
+		"VerifyURL":  verifyURL,
+		"VerifyCode": verifyCode,
+		"Code":       verifyCode,
+		"AppName":    appName,
+	}
+
+	c.logger.Info().
+		Str("to", to).
+		Str("verify_url", verifyURL).
+		Str("verify_code", verifyCode).
+		Msg("🔑 Email verification code generated")
+
+	subject := os.Getenv("VERIFY_EMAIL_SUBJECT")
+	if subject == "" {
+		subject = fmt.Sprintf("Verify your %s email address", appName)
+	}
+
+	return c.SendEmail(
+		to,
+		subject,
+		TemplateVerifyEmail,
 		data,
 	)
 }

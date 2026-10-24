@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-export { QUERY_KEYS } from "./query-utils.js";
+export { QUERY_KEYS } from "./query-utils";
 
 export const showApiErrorToast = (error: unknown, fallbackMessage: string) => {
   const message = 
